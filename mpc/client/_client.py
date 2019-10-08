@@ -1,6 +1,6 @@
 import asyncio
 
-from mpc.server._connection import Connection
+from mpc.common.connection import Connection
 
 
 class Client(object):

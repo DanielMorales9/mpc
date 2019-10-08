@@ -18,7 +18,8 @@ class IProtocol(object):
 
 class ObliviousTransfer(IProtocol):
 
-    def __init__(self):
+    def __init__(self, random_oracle):
+        self.random = random_oracle
         self.methods = [self.get_public_key, self.get_random_integers, self.get_integers]
         self.key = None
         self.x0 = None
@@ -40,8 +41,8 @@ class ObliviousTransfer(IProtocol):
         return {'n': public_key.n, 'e': public_key.e}
 
     def get_random_integers(self):
-        self.x0 = random.randint(0, sys.maxsize)
-        self.x1 = random.randint(0, sys.maxsize)
+        self.x0 = self.random(self.m0)
+        self.x1 = self.random(self.m1)
         return {'x0': self.x0, 'x1': self.x1}
 
     def get_integers(self, v):
