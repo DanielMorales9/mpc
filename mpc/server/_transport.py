@@ -1,12 +1,12 @@
 import asyncio
 
-from mpc.server._connection import Connection
-from mpc.server._events import EventHook
+from mpc.common.connection import Connection
+from mpc.server._context import Context
 
 
 class Transport(asyncio.Protocol):
 
-    def __init__(self, hook: EventHook):
+    def __init__(self, hook: Context):
         self.hook = hook
         self.connection = Connection()
         self.transport = None
@@ -18,8 +18,5 @@ class Transport(asyncio.Protocol):
         app, method, data = self.connection.unmarshall(data)
         response = self.hook.handle(app, method, **data)
         data = self.connection.marshall(app, method, **response)
-        self.send_response(data)
-        self.transport.close()
-
-    def send_response(self, data):
         self.transport.write(data)
+        self.transport.close()

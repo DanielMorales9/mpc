@@ -1,38 +1,14 @@
-import random
-import sys
-from abc import ABCMeta, abstractmethod
-
 from Crypto import Random
 from Crypto.PublicKey import RSA
 
-MAX_RAND = 2 * 1024
 
+class ObliviousTransfer(object):
 
-class IProtocol(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def get_methods(self):
-        pass
-
-
-class ObliviousTransfer(IProtocol):
-
-    def __init__(self, random_oracle):
+    def __init__(self, secrets, random_oracle):
         self.random = random_oracle
-        self.methods = [self.get_public_key, self.get_random_integers, self.get_integers]
+        self.m = secrets
+        self.x = None
         self.key = None
-        self.x0 = None
-        self.x1 = None
-        self.m0 = 2**0
-        self.m1 = 2**10
-
-    def init_messages(self, m0, m1):
-        self.m0 = m0
-        self.m1 = m1
-
-    def get_methods(self):
-        return self.methods
 
     def get_public_key(self):
         random_generator = Random.new().read
@@ -41,17 +17,10 @@ class ObliviousTransfer(IProtocol):
         return {'n': public_key.n, 'e': public_key.e}
 
     def get_random_integers(self):
-        self.x0 = self.random(self.m0)
-        self.x1 = self.random(self.m1)
-        return {'x0': self.x0, 'x1': self.x1}
+        self.x = [self.random(m) for m in self.m]
+        return {'x': self.x}
 
     def get_integers(self, v):
-        k0, k1 = self.get_ks(v)
-        m_0 = self.m0 + k0
-        m_1 = self.m1 + k1
-        return {'m_0': m_0, 'm_1': m_1}
-
-    def get_ks(self, v):
-        k0 = self.key.decrypt(v - self.x0)
-        k1 = self.key.decrypt(v - self.x1)
-        return k0, k1
+        k = [self.key.decrypt(v - x) for x in self.x]
+        _m = [m_ + k_ for m_, k_ in zip(self.m, k)]
+        return {'m': _m}

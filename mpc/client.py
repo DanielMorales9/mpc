@@ -1,16 +1,18 @@
 import asyncio
 
-from mpc.client.protocol import ObliviousTransfer
+from mpc.client.protocols import ObliviousTransfer
+
+from mpc.client.client import Client
+from mpc.common.protocols import RandomOracle
 
 
 async def main(host, port):
-    x = input("Do you want 1° or 2° integer?")
-    if x == "1":
-        b = 0
-    else:
-        b = 1
+    x = input("Input b: ")
+    b = int(x)
 
-    protocol = ObliviousTransfer(host, port)
+    client = Client(host, port)
+    random = RandomOracle()
+    protocol = ObliviousTransfer(client, random)
     mb = await protocol.run(b)
     print(f"Your choice is {mb}")
 

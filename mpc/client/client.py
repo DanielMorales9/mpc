@@ -5,14 +5,16 @@ from mpc.common.connection import Connection
 
 class Client(object):
 
-    def __init__(self):
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
         self.connection = Connection()
         self.loop = asyncio.get_event_loop()
         self.reader = None
         self.writer = None
 
-    async def connect(self, host, port):
-        self.reader, self.writer = await asyncio.open_connection(host, port, loop=self.loop)
+    async def connect(self):
+        self.reader, self.writer = await asyncio.open_connection(self.host, self.port, loop=self.loop)
 
     def send(self, *args, **kwargs):
         message = self.connection.marshall(*args, **kwargs)

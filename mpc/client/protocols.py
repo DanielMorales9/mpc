@@ -1,22 +1,13 @@
-import random
-import sys
-
-from mpc.client._client import Client
-from mpc.common.protocols import RandomOracle
-
-
 class ObliviousTransfer(object):
 
-    def __init__(self, host, port, random_oracle=None):
-        self.host = host
-        self.port = port
-        self.client = Client()
-        if not random_oracle:
-            random_oracle = RandomOracle()
+    def __init__(self, client, random_oracle):
+        assert client is not None, "Client cannot be None"
+        self.client = client
         self.random = random_oracle
 
     async def get_public_key(self):
-        await self.client.connect(self.host, self.port)
+        await self.client.connect()
+        # TODO improve this
         self.client.send(self.__class__.__name__, self.get_public_key.__name__)
         res = await self.client.receive()
         key = res[-1]
@@ -24,20 +15,20 @@ class ObliviousTransfer(object):
         return key['n'], key['e']
 
     async def get_random_integers(self):
-        await self.client.connect(self.host, self.port)
+        await self.client.connect()
         self.client.send(self.__class__.__name__, self.get_random_integers.__name__)
         res = await self.client.receive()
         res = res[-1]
         self.client.close()
-        return res['x0'], res['x1']
+        return res['x']
 
     async def get_integers(self, v):
-        await self.client.connect(self.host, self.port)
+        await self.client.connect()
         self.client.send(self.__class__.__name__, self.get_integers.__name__, v=v)
         res = await self.client.receive()
         res = res[-1]
         self.client.close()
-        return res['m_0'], res['m_1']
+        return res['m']
 
     async def run(self, b):
         n, e = await self.get_public_key()
@@ -47,5 +38,4 @@ class ObliviousTransfer(object):
         v = (xb + k ** e) % n
         ms = await self.get_integers(v)
         m_b = ms[b] - k
-        print(ms[(b + 1) % 2] - k)
         return m_b
