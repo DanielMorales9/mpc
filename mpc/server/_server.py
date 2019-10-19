@@ -1,22 +1,19 @@
-import asyncio
-
-from mpc.server._context import Context
-from mpc.server._factories import ProtocolFactory
-from mpc.server._transport import Transport
+from mpc.server._transport import SocketTransport
 
 
 class Server(object):
 
     def __init__(self):
-        protocol = ProtocolFactory.create()
-        self.context = Context(protocol)
+        self.transport = None
 
     def run(self, host='127.0.0.1', port=8080):
-        context = self.context
+        self.transport = SocketTransport(host, port)
 
-        async def main():
-            loop = asyncio.get_running_loop()
-            server = await loop.create_server(lambda: Transport(context), host, port)
-            await server.serve_forever()
-
-        asyncio.run(main())
+        while True:
+            self.transport.connect()
+            while True:
+                try:
+                    self.transport.receive()
+                except ConnectionAbortedError:
+                    self.transport.close()
+                    break

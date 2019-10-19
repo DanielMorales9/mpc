@@ -1,0 +1,9 @@
+{
+  "name"  : "OR circuit",
+  "alice" : [1],
+  "bob"   : [2],
+  "out"   : [3],
+  "gates" : [
+    {"id" : 3, "type" : "OR", "in" : [1, 2]}
+  ]
+}

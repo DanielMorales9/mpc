@@ -1,22 +1,34 @@
-import asyncio
+import socket
 
-from mpc.common.connection import Connection
+from mpc.common.connection import marshall_response, unmarshall_request
 from mpc.server._context import Context
+from mpc.server._factories import ProtocolFactory
 
 
-class Transport(asyncio.Protocol):
+class SocketTransport(object):
 
-    def __init__(self, hook: Context):
-        self.hook = hook
-        self.connection = Connection()
-        self.transport = None
+    def __init__(self, host, port):
+        self.context = None
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.bind((host, port))
+        self.s.listen(1)
+        self.socket = None
 
-    def connection_made(self, transport):
-        self.transport = transport
+    def connect(self):
+        self.socket, client = self.s.accept()
+        # TODO should be initialized and injected differently,
+        #  maybe it has a lifecycle manager that copies objects clears
+        #  and override attributes
+        self.context = Context(self.socket)
 
-    def data_received(self, data):
-        app, method, data = self.connection.unmarshall(data)
-        response = self.hook.handle(app, method, **data)
-        data = self.connection.marshall(app, method, **response)
-        self.transport.write(data)
-        self.transport.close()
+    def receive(self):
+        data = self.socket.recv(10000)
+        if not data:
+            raise ConnectionAbortedError
+        protocol, method, data = unmarshall_request(data)
+        response = self.context.handle(protocol, method, **data)
+        data = marshall_response(**response)
+        self.socket.send(data)
+
+    def close(self):
+        self.socket.close()

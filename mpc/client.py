@@ -1,20 +1,35 @@
-import asyncio
+import json
 
-from mpc.client.protocols import ObliviousTransfer
-
-from mpc.client.client import Client
+from mpc.client.client import SocketClient
+from mpc.client.protocols import YaoGarbledCircuit, ObliviousTransfer
 from mpc.common.protocols import RandomOracle
+from mpc.server._protocols import YaoObliviousTransfer
 
 
-async def main(host, port):
-    x = input("Input b: ")
-    b = int(x)
+# def main(host, port):
+#     # oblivious transfer
+#     x = input("Input b: ")
+#     b = int(x)
+#
+#     client = SocketClient(host=host, port=port)
+#     random = RandomOracle()
+#     with client:
+#         protocol = ObliviousTransfer(client, random)
+#         mb = protocol.run(b)
+#         print(f"Your choice is {mb}")
 
-    client = Client(host, port)
+
+def main(host, port):
+    input = [1]
+    client = SocketClient(host=host, port=port)
     random = RandomOracle()
-    protocol = ObliviousTransfer(client, random)
-    mb = await protocol.run(b)
-    print(f"Your choice is {mb}")
+    ot = YaoObliviousTransfer(random)
+    protocol = YaoGarbledCircuit(client, ot)
+    circuit_spec = json.load(open('yao.json'))
+    with client:
+        output = protocol.run(circuit_spec, input)
+        for gate in circuit_spec['out']:
+            print("Out Gate: %s\tResult: %s" % (gate, output[gate]))
 
 
-asyncio.run(main('localhost', 8080))
+main('localhost', 8080)

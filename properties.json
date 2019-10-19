@@ -1,5 +1,8 @@
 {
   "ObliviousTransfer": {
     "secrets": [0, 1, 2]
+  },
+  "YaoGarbledCircuit": {
+    "inputs": [0]
   }
 }
