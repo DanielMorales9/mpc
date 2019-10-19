@@ -2,3 +2,6 @@ mpc.egg-info/
 .idea/
 __pycache__/
 venv/
+.tox/
+.coverage
+*.json
