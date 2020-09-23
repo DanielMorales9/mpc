@@ -2,4 +2,4 @@
 Secure Multiparty Computation Protocols
 
 Experimenting with Secure Multiparty Computation Protocols.    
-Implementation of Yao's Garbled Circuit using Python asyncio. 
+I implemented the Oblivious Transfer and Yao's Garbled Circuit using Python asyncio. 
